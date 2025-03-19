@@ -1,14 +1,11 @@
 name: build
 on:
-  pull_request:
-    branches:
-      - master
-  schedule:
-    - cron: '30 22 * * *'
   workflow_dispatch:
+  release:
+    types: [published]
 
 env:
-  TAG_NAME: latest
+  TAG_NAME: ${{ github.event.release.tag_name }}
 
 jobs:
   buildroot:
@@ -19,142 +16,15 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          # Sigmastar [I6]
-          - ssc325_lite
-          - ssc325de_lite
+          # FPV
+          - ssc30kq_fpv
+          - ssc338q_fpv
+          - ssc378qe_fpv
 
-          # Sigmastar [I6B]
-          - ssc333_lite
-          - ssc335_lite
-          - ssc335de_lite
-          - ssc337_lite
-          - ssc337de_lite
-
-          # Sigmastar [I6C]
-          - ssc377_lite
-          - ssc377d_lite
-          - ssc377de_lite
-          - ssc378de_lite
-          - ssc378qe_lite
-
-          # Sigmastar [I6E]
-          - ssc30kd_lite
-          - ssc30kq_lite
-          - ssc338q_lite
-
-          # Ingenic [T21]
-          - t10_lite
-          - t20_lite
-          - t21_lite
-          - t30_lite
-
-          # Ingenic [T31]
-          - t31_lite
-
-          # Ingenic [T40]
-          - t40_lite
-
-          # Hisilicon [HI3516AV100]
-          - hi3516av100_lite
-          - hi3516dv100_lite
-
-          # Hisilicon [HI3516CV100]
-          - hi3516cv100_lite
-          - hi3518cv100_lite
-          - hi3518ev100_lite
-
-          # Hisilicon [HI3516CV200]
-          - hi3516cv200_lite
-          - hi3518ev200_lite
-
-          # Hisilicon [HI3516CV300]
-          - hi3516cv300_lite
-          - hi3516ev100_lite
-
-          # Hisilicon [HI3516CV500]
-          - hi3516av300_lite
-          - hi3516cv500_lite
-          - hi3516dv300_lite
-
-          # Hisilicon [HI3516EV200]
-          - hi3516dv200_lite
-          - hi3516ev200_lite
-          - hi3516ev300_lite
-          - hi3518ev300_lite
-
-          # Hisilicon [HI3519V101]
-          - hi3516av200_lite
-          - hi3519v101_lite
-
-          # Hisilicon [HI3536CV100]
-          - hi3536cv100_lite
-
-          # Hisilicon [HI3536DV100]
-          - hi3536dv100_lite
-
-          # Goke [GK710X]
-          - gk7102_lite
-          - gk7102s_lite
-
-          # Goke [GK7205V200]
-          - gk7202v300_lite
-          - gk7205v200_lite
-          - gk7205v210_lite
-          - gk7205v300_lite
-          - gk7605v100_lite
-
-          # Goke [GK7205V500]
-          - gk7205v500_lite
-
-          # Allwinner
-          - v851s_lite
-
-          # Fullhan
-          - fh8852v100_lite
-          - fh8852v200_lite
-
-          # Grainmedia
-          - gm8135_lite
-          - gm8136_lite
-
-          # Novatek
-          - nt98562_lite
-          - nt98566_lite
-
-          # Rockchip
-          - rv1103_lite
-          - rv1106_lite
-          - rv1109_lite
-          - rv1126_lite
-
-          # Xiongmai
-          - xm510_lite
-          - xm530_lite
-          - xm550_lite
-
-          # Ultimate
-          - ssc333_ultimate
-          - ssc335_ultimate
-          - ssc335de_ultimate
-          - ssc337_ultimate
-          - ssc337de_ultimate
-          - ssc30kd_ultimate
-          - ssc30kq_ultimate
-          - ssc338q_ultimate
-          - t20_ultimate
-          - t21_ultimate
-          - t31_ultimate
-          - t40_ultimate
-          - hi3516av100_ultimate
-          - hi3516dv100_ultimate
-          - hi3518ev200_ultimate
-          - hi3516cv300_ultimate
-          - hi3516ev200_ultimate
-          - hi3516ev300_ultimate
-          - hi3518ev300_ultimate
-          - hi3516av200_ultimate
-          - gk7205v200_ultimate
-          - gk7205v300_ultimate
+          # DigitalFPV
+          - ssc30kq_digitalfpv
+          - ssc338q_digitalfpv
+          - ssc378qe_digitalfpv
 
     steps:
       - name: Checkout source
@@ -203,22 +73,11 @@ jobs:
             echo NANDFW=${NANDFW} >> ${GITHUB_ENV}
           fi
 
-      - name: Upload firmware
-        if: github.event_name != 'pull_request'
+      - name: Upload release firmware
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{env.TAG_NAME}}
+          token: ${{ secrets.RELEASE_TOKEN }}
           files: |
             ${{env.NORFW}}
-            ${{env.NANDFW}}
-
-      - name: Send binary
-        if: github.event_name != 'pull_request' && env.NORFW
-        run: |
-          TG_MSG="Commit: ${GIT_HASH}\nBranch: ${GIT_BRANCH}\nTag: ${TAG_NAME}\nTime: ${TIME}\n\n"
-          TG_ICON="\xE2\x9C\x85 GitHub Actions"
-          TG_HEADER=$(echo -e ${TG_MSG}${TG_ICON})
-          TG_TOKEN=${{secrets.TELEGRAM_TOKEN_BOT_OPENIPC}}
-          TG_CHANNEL=${{secrets.TELEGRAM_CHANNEL_OPENIPC_DEV}}
-          HTTP=$(curl -s -o /dev/null -w %{http_code} https://api.telegram.org/bot${TG_TOKEN}/sendDocument -F chat_id=${TG_CHANNEL} -F caption="${TG_HEADER}" -F document=@${NORFW})
-          echo Telegram response: ${HTTP}
