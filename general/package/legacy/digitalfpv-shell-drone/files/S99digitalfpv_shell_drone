@@ -1,0 +1,21 @@
+#!/bin/sh
+
+keydir=/etc
+
+if [ -e /etc/telemetry.conf ]; then
+	. /etc/telemetry.conf
+else
+	echo "/etc/telemetry.conf not found!"
+	exit 1
+fi
+
+# tx and rx radio_port is hard code for now
+telemetry_rx -p 164 -u "$port_rx" -K "$keydir/$unit.key" -i "$link_id" "$wlan" > /dev/null &
+
+telemetry_tx -p 66 -u "$port_tx" -K "$keydir/$unit.key" -B "$bandwidth" \
+-M "$mcs_index" -S "$stbc" -L "$ldpc" -G "$guard_interval" -k "$fec_k" -n "$fec_n" \
+-T "$pool_timeout" -i "$link_id" -f "$frame_type" "$wlan" > /dev/null &
+
+shell_drone > /dev/null 2>&1 &
+
+exit 0
