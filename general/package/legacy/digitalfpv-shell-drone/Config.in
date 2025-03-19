@@ -1,0 +1,4 @@
+config BR2_PACKAGE_DIGITALFPV_SHELL_DRONE
+	bool "digitalfpv-shell-drone"
+	help
+	  digitalfpv remote shell for drone
