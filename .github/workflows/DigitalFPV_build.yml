@@ -1,4 +1,5 @@
 name: DigitalFPV_build
+
 on:
   workflow_dispatch:
   release:
@@ -63,15 +64,25 @@ jobs:
           TIME=$(date -d @${SECONDS} +%M:%S)
           echo TIME=${TIME} >> ${GITHUB_ENV}
 
-          NORFW=$(find output/images -name openipc*nor*)
-          if [ -e ${NORFW} ]; then
+          OUTPUT_NORFW=$(find output/images -name openipc*nor*)
+          if [ -e ${OUTPUT_NORFW} ]; then
+            [ -z "${TAG_NAME}" ] && TAG_NAME=$(git rev-parse --short HEAD)
+            NORFW=${OUTPUT_NORFW%.tgz}_${TAG_NAME}.tgz
+            mv ${OUTPUT_NORFW} ${NORFW}
             echo NORFW=${NORFW} >> ${GITHUB_ENV}
           fi
 
-          NANDFW=$(find output/images -name openipc*nand*)
-          if [ -e ${NANDFW} ]; then
-            echo NANDFW=${NANDFW} >> ${GITHUB_ENV}
-          fi
+          # NANDFW=$(find output/images -name openipc*nand*)
+          # if [ -e ${NANDFW} ]; then
+          #   echo NANDFW=${NANDFW} >> ${GITHUB_ENV}
+          # fi
+
+      - name: Upload test firmware to artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{matrix.platform}}
+          path: output/images/openipc*nor*
 
       - name: Upload release firmware
         if: github.event_name == 'release'
