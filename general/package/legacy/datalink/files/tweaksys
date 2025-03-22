@@ -86,6 +86,9 @@ finish() {
 }
 
 sigmastar() {
+	# remove unneeded init.d scripts
+	rm -f /etc/init.d/S60crond /etc/init.d/S49ntpd /etc/init.d/S02klogd
+
 	sed -i "s|tunnel=false|tunnel=true|g" /etc/datalink.conf
 	sed -i "s|serial=/dev/ttyAMA0|serial=/dev/ttyS2|g" /etc/telemetry.conf
 	sed -i "s|Device = /dev/ttyAMA0|Device = /dev/ttyS2|g" /etc/mavlink.conf
