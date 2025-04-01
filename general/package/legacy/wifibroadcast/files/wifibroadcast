@@ -34,7 +34,7 @@ detect_wifi_card() {
 	devices=$(lsusb | cut -d ' ' -f6 | sort | uniq)
 	for card in $devices; do
 		case "$card" in
-			"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
+			"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2357:010d" | "2604:0012")
 				driver="88XXau"
 				modprobe 88XXau rtw_tx_pwr_idx_override="$driver_txpower_override"
 				;;
@@ -49,7 +49,7 @@ detect_wifi_card() {
 				modprobe 8733bu rtw_regd_src=1 rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
 				;;
 
-			"0bda:c812")
+			"0bda:c812" | "0bda:c82c")
 				driver="88x2cu"
 				modprobe 88x2cu rtw_regd_src=1 rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
 				;;
