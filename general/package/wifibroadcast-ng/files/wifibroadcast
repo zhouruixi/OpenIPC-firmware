@@ -25,7 +25,7 @@ load_config() {
 load_modules() {
 	for card in $(lsusb | awk '{print $6}' | uniq); do
 		case "$card" in
-			"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
+			"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2357:010d" | "2604:0012")
 				driver=88XXau
 				modprobe "$driver"
 				;;
@@ -39,6 +39,11 @@ load_modules() {
 				driver=8733bu
 				modprobe "$driver" rtw_regd_src=1 rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
 				;;
+
+			"0bda:c812" | "0bda:c82c")
+                                driver="88x2cu"
+                                modprobe 88x2cu rtw_regd_src=1 rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
+                                ;;
 		esac
 	done
 
