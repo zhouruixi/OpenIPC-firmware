@@ -130,3 +130,4 @@ source "$BR2_EXTERNAL_GENERAL_PATH/package/legacy/sigmastar-osdrv-msc313e/Config
 source "$BR2_EXTERNAL_GENERAL_PATH/package/legacy/webui/Config.in"
 source "$BR2_EXTERNAL_GENERAL_PATH/package/legacy/wifibroadcast/Config.in"
 source "$BR2_EXTERNAL_GENERAL_PATH/package/legacy/digitalfpv-shell-drone/Config.in"
+source "$BR2_EXTERNAL_GENERAL_PATH/package/legacy/digitalfpv-mavfwd/Config.in"

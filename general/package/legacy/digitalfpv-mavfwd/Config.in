@@ -1,0 +1,4 @@
+config BR2_PACKAGE_DIGITALFPV_MAVFWD
+	bool "digitalfpv-mavfwd"
+	help
+	  Simple mavlink forwarder modified by Unravel.
