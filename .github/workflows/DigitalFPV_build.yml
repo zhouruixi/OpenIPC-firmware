@@ -77,6 +77,60 @@ jobs:
           #   echo NANDFW=${NANDFW} >> ${GITHUB_ENV}
           # fi
 
+          # Generate bin firmware
+          pushd output/images
+          platform=${{matrix.platform}}
+          soc=${platform%_*}
+
+          uboot=u-boot-$soc-nor.bin
+          ubootenv=u-boot-env-$soc-nor.bin
+          kernel=uImage.$soc
+          rootfs=rootfs.squashfs.$soc
+          binnorfw=$(basename ${NORFW%.tgz}).bin
+
+          # get u-boot
+          link=https://github.com/openipc/firmware/releases/download/latest
+          wget -nv $link/$uboot -O $uboot
+
+          # make uboot env image and set env
+          sudo apt update
+          sudo apt install -y u-boot-tools
+          mkenvimage -s 0x10000 -o $ubootenv /dev/null
+          echo -e "$(readlink -f ${ubootenv})\t0\t0x10000\t0x10000\t0x1" > fw_env.config
+
+          fw_setenv -c fw_env.config baseaddr '0x21000000'
+          fw_setenv -c fw_env.config kernaddr '0x50000'
+          fw_setenv -c fw_env.config kernsize '0x200000'
+          fw_setenv -c fw_env.config rootaddr '0x250000'
+          fw_setenv -c fw_env.config rootsize '0xa00000'
+          fw_setenv -c fw_env.config rootmtd '10240k'
+          fw_setenv -c fw_env.config bootargs 'console=ttyS0,115200 panic=20 root=/dev/mtdblock3 init=/init mtdparts=NOR_FLASH:256k(boot),64k(env),2048k(kernel),${rootmtd}(rootfs),-(rootfs_data) LX_MEM=${memlx} mma_heap=mma_heap_name0,miu=0,sz=${memsz} cma=2M'
+          fw_setenv -c fw_env.config bootcmd 'setenv setargs setenv bootargs ${bootargs}; run setargs; sf probe 0; sf read ${baseaddr} ${kernaddr} ${kernsize}; bootm ${baseaddr}'
+          fw_setenv -c fw_env.config bootcmdbak 'setenv bootcmd ${cmdnor}; sf probe 0; saveenv; run bootcmd'
+          fw_setenv -c fw_env.config cmdnor 'sf probe 0; setenv setargs setenv bootargs ${bootargs}; run setargs; sf read ${baseaddr} ${kernaddr} ${kernsize}; bootm ${baseaddr}'
+
+          fw_setenv -c fw_env.config ubnor '${updatetool} ${baseaddr} u-boot-${soc}-nor.bin && run ubwrite'
+          fw_setenv -c fw_env.config uknor '${updatetool} ${baseaddr} uImage.${soc} && run ukwrite'
+          fw_setenv -c fw_env.config urnor '${updatetool} ${baseaddr} rootfs.squashfs.${soc} && run urwrite'
+          fw_setenv -c fw_env.config ubwrite 'sf probe 0; sf erase 0x0 ${kernaddr}; sf write ${baseaddr} 0x0 ${kernaddr}'
+          fw_setenv -c fw_env.config ukwrite 'sf probe 0; sf erase ${kernaddr} ${kernsize}; sf write ${baseaddr} ${kernaddr} ${filesize}'
+          fw_setenv -c fw_env.config urwrite 'sf probe 0; sf erase ${rootaddr} ${rootsize}; sf write ${baseaddr} ${rootaddr} ${filesize}'
+          fw_setenv -c fw_env.config sdcard 'setenv updatetool fatload mmc 0'
+          fw_setenv -c fw_env.config updatetool 'tftpboot'
+          fw_setenv -c fw_env.config soc $soc
+
+          fw_setenv -c fw_env.config ipaddr '192.168.1.10'
+          fw_setenv -c fw_env.config serverip '192.168.1.254'
+          fw_setenv -c fw_env.config netmask '255.255.255.0'
+
+          # Generate bin firmware
+          dd if=/dev/zero bs=1K count=5000 status=none | tr '\000' '\377' > ${binnorfw}
+          dd if=${uboot} of=${binnorfw} bs=1K seek=0 conv=notrunc status=none
+          dd if=${ubootenv} of=${binnorfw} bs=1K seek=256 conv=notrunc status=none
+          dd if=${kernel} of=${binnorfw} bs=1K seek=320 conv=notrunc status=none
+          dd if=${rootfs} of=${binnorfw} bs=1K seek=2368 conv=notrunc status=none
+          popd
+
       - name: Upload test firmware to artifact
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v4
@@ -92,3 +146,4 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           files: |
             ${{env.NORFW}}
+            output/images/openipc*.bin
