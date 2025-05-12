@@ -10,77 +10,76 @@ set_mmc() {
 	[ "$(cat $mmc)" = "N" ] && echo "INSERT" > $mmc
 }
 
-# Generic ATBM603X
-if [ "$1" = "atbm603x-generic" ]; then
-	set_mmc 1
-	cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
-	cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
-	modprobe atbm603x_wifi_sdio atbm_printk_mask=0
-	exit 0
-fi
+case "$1" in
+	# Generic ATBM603X
+	atbm603x-generic)
+		set_mmc 1
+		cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
+		cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
+		modprobe atbm603x_wifi_sdio atbm_printk_mask=0
+		;;
 
-# Generic RTL8189FS
-if [ "$1" = "rtl8189fs-generic" ]; then
-	set_mmc 1
-	modprobe 8189fs
-	exit 0
-fi
+	# Generic RTL8189FS
+	rtl8189fs-generic)
+		set_mmc 1
+		modprobe 8189fs
+		;;
 
-# Generic XR829
-if [ "$1" = "xr829-generic" ]; then
-	modprobe xradio_wlan
-	exit 0
-fi
+	# Generic XR829
+	xr829-generic)
+		modprobe xradio_wlan
+		;;
 
-# T20 Wyze PanV1
-if [ "$1" = "rtl8189es-t20-wyze-pan-v1" ]; then
-	set_mmc 1
-	modprobe 8189es rtw_power_mgnt=0 rtw_enusbss=0
-	exit 0
-fi
+	# T20 Wyze PanV1
+	rtl8189es-t20-wyze-pan-v1)
+		set_mmc 1
+		modprobe 8189es rtw_power_mgnt=0 rtw_enusbss=0
+		;;
 
-# T20 Wyze V2
-if [ "$1" = "rtl8189ftv-t20-wyze-v2" ]; then
-	set_mmc 1
-	modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
-	exit 0
-fi
+	# T20 Wyze V2
+	rtl8189ftv-t20-wyze-v2)
+		set_mmc 1
+		modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
+		;;
 
-# T31 Wyze DB3
-if [ "$1" = "rtl8189ftv-t31-wyze-db3" ]; then
-	set_mmc 1
-	modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
-	exit 0
-fi
+	# T31 Wyze DB3
+	rtl8189ftv-t31-wyze-db3)
+		set_mmc 1
+		modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
+		;;
 
-# T31 Wyze PanV2
-if [ "$1" = "atbm603x-t31-wyze-pan-v2" ]; then
-	set_gpio 58 0
-	set_gpio 58 1
-	set_mmc 1
-	cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
-	cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
-	modprobe atbm603x_wifi_sdio atbm_printk_mask=0
-	exit 0
-fi
+	# T31 Wyze PanV2
+	atbm603x-t31-wyze-pan-v2)
+		set_gpio 58 0
+		set_gpio 58 1
+		set_mmc 1
+		cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
+		cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
+		modprobe atbm603x_wifi_sdio atbm_printk_mask=0
+		;;
 
-# T31 Wyze V3 / AtomCam 2
-if [ "$1" = "atbm603x-t31-wyze-v3" ]; then
-	set_gpio 57 0
-	set_gpio 57 1
-	set_mmc 1
-	cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
-	cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
-	modprobe atbm603x_wifi_sdio atbm_printk_mask=0
-	exit 0
-fi
+	# T31 Wyze V3 / AtomCam 2
+	atbm603x-t31-wyze-v3)
+		set_gpio 57 0
+		set_gpio 57 1
+		set_mmc 1
+		cp -f /usr/share/atbm60xx_conf/atbm_txpwer_dcxo_cfg.txt /tmp
+		cp -f /usr/share/atbm60xx_conf/set_rate_power.txt /tmp
+		modprobe atbm603x_wifi_sdio atbm_printk_mask=0
+		;;
 
-# T31 Wyze V3
-if [ "$1" = "rtl8189ftv-t31-wyze-v3" ]; then
-	set_gpio 57 1
-	set_mmc 1
-	modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
-	exit 0
-fi
+	# T31 Wyze V3
+	rtl8189ftv-t31-wyze-v3)
+		set_gpio 57 1
+		set_mmc 1
+		modprobe 8189fs rtw_power_mgnt=0 rtw_enusbss=0
+		;;
 
-exit 1
+	*)
+		echo "Unsupported device: $1"
+		exit 1
+		;;
+esac
+
+
+exit 0
