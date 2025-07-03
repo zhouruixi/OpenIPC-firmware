@@ -1,0 +1,6 @@
+config BR2_PACKAGE_JITTERENTROPY_RNGD
+    bool "jitterentropy-rngd"
+    depends on BR2_USE_MMU
+    select BR2_PACKAGE_JITTERENTROPY_LIBRARY
+    help
+      Daemon to feed entropy into the Linux kernel using the Jitter RNG.
